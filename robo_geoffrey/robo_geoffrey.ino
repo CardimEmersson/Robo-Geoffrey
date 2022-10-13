@@ -26,9 +26,11 @@
 const int MOTOR_PARA_FRENTE = 2;
 const int MOTOR_PARA_TRAS = 1;
 
-const int VELOCIDADE_PADRAO = 100;
+const int VELOCIDADE_PADRAO = 130;
 const int VELOCIDADE_ARRANCADA = 70;
 const int DISTANCIA_LIMITE = 40;
+int CONTROLE_VELOCIDADE = 70;
+unsigned long agora = 0;
 
 // setup inicial
 Robojax_L298N_DC_motor robot(IN1, IN2, ENA, CHA, IN3, IN4, ENB, CHB);
@@ -37,7 +39,7 @@ void setup()
 {
 
   Serial.begin(115200);
-  Dabble.begin("Robo Jenkins");
+  Dabble.begin("Robo Geoffrey");
   robot.begin();
 
   pinMode(TRIGGER_PIN, OUTPUT);
@@ -49,8 +51,6 @@ void loop()
   Dabble.processInput();
 
   controleDirecionalDigital();
-  controleDirecionalAnalogico();
-  controleAcoes();
 }
 
 int calculaPWM(int velocidadePWM)
@@ -82,20 +82,20 @@ void moveParaFrente(int velocidade)
 
 void moveParaTras(int velocidade)
 {
-  robot.rotate(MOTOR_1, controle, MOTOR_PARA_TRAS);
-  robot.rotate(MOTOR_2, controle, MOTOR_PARA_TRAS);
+  robot.rotate(MOTOR_1, velocidade, MOTOR_PARA_TRAS);
+  robot.rotate(MOTOR_2, velocidade, MOTOR_PARA_TRAS);
 }
 
 void moveParaDireita(int velocidade)
 {
-  robot.rotate(MOTOR_1, calculaPWM(velocidade), MOTOR_PARA_FRENTE);
-  robot.rotate(MOTOR_2, calculaPWM(velocidade), MOTOR_PARA_TRAS);
+  robot.rotate(MOTOR_1, velocidade, MOTOR_PARA_FRENTE);
+  robot.rotate(MOTOR_2, velocidade, MOTOR_PARA_TRAS);
 }
 
 void moveParaEsquerda(int velocidade)
 {
-  robot.rotate(MOTOR_1, calculaPWM(velocidade), MOTOR_PARA_TRAS);
-  robot.rotate(MOTOR_2, calculaPWM(velocidade), MOTOR_PARA_FRENTE);
+  robot.rotate(MOTOR_1, velocidade, MOTOR_PARA_TRAS);
+  robot.rotate(MOTOR_2, velocidade, MOTOR_PARA_FRENTE);
 }
 
 void pararMotor()
@@ -112,46 +112,38 @@ void controleDirecionalDigital()
   if (colisaoFrontal)
   {
     pararMotor();
-    return;
   }
 
-  if (GamePad.isUpPressed())
+  if (GamePad.isUpPressed() && !colisaoFrontal)
   {
-    for (int controleVelocidade = VELOCIDADE_ARRANCADA; VELOCIDADE_PADRAO <= controleVelocidade; controleVelocidade += 10)
+    for (CONTROLE_VELOCIDADE; CONTROLE_VELOCIDADE <= VELOCIDADE_PADRAO; CONTROLE_VELOCIDADE += 10)
     {
-      moveParaFrente(controleVelocidade);
+      moveParaFrente(CONTROLE_VELOCIDADE);
+      esperar(500);
     }
-    return;
   }
 
   if (GamePad.isDownPressed())
   {
-    for (int controleVelocidade = VELOCIDADE_ARRANCADA; VELOCIDADE_PADRAO <= controleVelocidade; controleVelocidade += 10)
+    for (CONTROLE_VELOCIDADE; CONTROLE_VELOCIDADE <= VELOCIDADE_PADRAO; CONTROLE_VELOCIDADE += 10)
     {
-      moveParaTras(controleVelocidade);
+      moveParaTras(CONTROLE_VELOCIDADE);
+      esperar(500);
     }
-    return;
   }
 
   if (GamePad.isLeftPressed())
   {
-    for (int controleVelocidade = VELOCIDADE_ARRANCADA; VELOCIDADE_PADRAO <= controleVelocidade; controleVelocidade += 10)
-    {
-      moveParaEsquerda(controleVelocidade);
-    }
-    return;
+    moveParaEsquerda(VELOCIDADE_PADRAO);
   }
 
   if (GamePad.isRightPressed())
   {
-    for (int controleVelocidade = VELOCIDADE_ARRANCADA; VELOCIDADE_PADRAO <= controleVelocidade; controleVelocidade += 10)
-    {
-      moveParaDireita(controleVelocidade);
-    }
-    return;
+    moveParaDireita(VELOCIDADE_PADRAO);
   }
 
   pararMotor();
+  CONTROLE_VELOCIDADE = 70;
 }
 
 int velocidade_PWM_y = 0;
@@ -273,4 +265,11 @@ float calculaDistancia(int trigger, int echo)
   float distanciaCm = duracao * VELOCIDADE_DO_SOM / 2;
 
   return distanciaCm;
+}
+
+void esperar(int milisegundos) {
+  agora = millis()
+  while(millis() < agora + milisegundos) {
+    
+  }
 }
